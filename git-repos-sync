@@ -56,16 +56,14 @@ else
 fi
 
 echo "Push merged changes in '${branch}' to '${right}'"
-if ! git push "${right}" "HEAD:${branch}"; then
+if ! git push "${right}" "HEAD:${branch}" --tags; then
   >&2 echo "Fatal: unable to push to '${right}', rerun the script as soon as connection restored."
   exit 1
-
 fi
 echo "Push merged changes in '${branch}' to '${left}'"
-if ! git push "${left}" "HEAD:${branch}"; then
+if ! git push "${left}" "HEAD:${branch}" --tags; then
   >&2 echo "Fatal: unable to push to '${left}', rerun the script as soon as connection restored."
   exit 1
-
 fi
 
 git checkout --quiet master
