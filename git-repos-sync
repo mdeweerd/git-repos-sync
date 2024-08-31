@@ -9,6 +9,14 @@ left="$1"
 right="$2"
 branch="$3"
 
+# Get the repository url from the configuration if they look like remotes
+if [[ "${left}" != */* ]] ; then
+  left=$(git remote get-url "${left}")
+fi
+if [[ "${right}" != */* ]] ; then
+  right=$(git remote get-url "${right}")
+fi
+
 export POTENTIAL_MAIN_REGEX="${POTENTIAL_MAIN_REGEX:(?:main|master|develop(men[t])?|dev)}"
 
 git_default_main() {
@@ -80,5 +88,7 @@ fi
 
 git checkout --quiet "$(git_default_main)"
 git branch -D --quiet "sync-${branch}"
+git branch -D --quiet "left/${branch}"
+git branch -D --quiet "right/${branch}"
 
 echo "Done."
