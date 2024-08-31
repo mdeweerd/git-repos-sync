@@ -1,15 +1,16 @@
-# Script to synchronize two Git repositories 
+# Script to synchronize two Git repositories
 
 ## Download
 
-```
+```shell
 mkdir <synchronization-folder> && cd <synchronization-folder>
 wget https://raw.githubusercontent.com/adidik/git-repos-sync/master/git-repos-sync
 chmod +x git-repos-sync
 ```
+
 or
 
-```
+```shell
 mkdir <synchronization-folder> && cd <synchronization-folder>
 curl -O https://raw.githubusercontent.com/adidik/git-repos-sync/master/git-repos-sync
 chmod +x git-repos-sync
@@ -18,23 +19,28 @@ chmod +x git-repos-sync
 ## Usage
 
 Just run the script with 3 parameters:
-* URL of first repository (left).
-* URL of second repository (right).
-* Branch to sync up.
 
-```
+- URL of first repository (left).
+- URL of second repository (right).
+- Branch to sync up.
+
+```shell
 ./git-repos-sync <URL> <URL> <branch>
 ```
 
-Both repositories must be accessble on server you execute the script.
+Both repositories must be accessible on server you execute the script.
 
+On first run script will init Git repository in script's folder and add
+left and right repositories as remotes. Then first attempt to sync
+specified branch will be made.
 
-On first run script will init Git repository in  script's folder and add left and right repositories as remotes. Then first attempt to sync specified branch will be made.
+In case if synchronization is not possible because of merge conflict,
+resolve it manually and just rerun script. It will automatically try to
+continue synchronization.
 
-In case if synchronization is not possible because of merge conflict, resolve it manually and just rerun script. It will automatically try to continue syncronization.
+In case if sync repo has uncommitted modifications, script will exit with
+warning.
 
-In case if sync repo has uncommitted modifications, script will exit with warning.
- 
 ## How does it work
 
 Script makes next actions to sync up two repos:
@@ -48,14 +54,14 @@ Script makes next actions to sync up two repos:
 
 In case of merge conflict, then:
 
-1. Wait while conflict will be solved manually and commited.
+1. Wait while conflict will be solved manually and committed.
 2. Fetch specified branch from left repo and right repo.
-3. Merge sync branch with right repo branch, if merge conflict, stop for manual resolution.
+3. Merge sync branch with right repo branch, if merge conflict, stop for
+   manual resolution.
 4. Merge left repo branch, if merge conflict, stop for manual resolution.
 5. Push sync branch to right repo.
 6. Push sync branch to left repo.
 7. Remove sync branch.
-
 
 See below different cases.
 
@@ -63,7 +69,7 @@ See below different cases.
 
 Initial:
 
-```
+```plaintext
 Left repo:  A-B-C <- branch
 
 Sync repo:  A-B-C <-  left/branch, right/branch
@@ -71,8 +77,9 @@ Sync repo:  A-B-C <-  left/branch, right/branch
 Right repo: A-B-C <-branch
 ```
 
-Fetch: 
-```
+Fetch:
+
+```plaintext
 Left repo:  A-B-C <- branch
 
 Sync repo:  A-B-C <-  sync-branch, left/branch, right/branch
@@ -80,9 +87,9 @@ Sync repo:  A-B-C <-  sync-branch, left/branch, right/branch
 Right repo: A-B-C <-branch
 ```
 
-Merge: 
+Merge:
 
-```
+```plaintext
 Left repo:  A-B-C <- branch
 
 Sync repo:  A-B-C <-  sync-branch, left/branch, right/branch
@@ -91,7 +98,8 @@ Right repo: A-B-C <-branch
 ```
 
 Push and remove sync branch:
-```
+
+```plaintext
 Left repo:  A-B-C <- branch
 
 Sync repo:  A-B-C <-  left/branch, right/branch
@@ -103,7 +111,7 @@ Right repo: A-B-C <-branch
 
 Initial:
 
-```
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C <-  left/branch, right/branch
@@ -111,8 +119,9 @@ Sync repo:  A-B-C <-  left/branch, right/branch
 Right repo: A-B-C <-branch
 ```
 
-Fetch: 
-```
+Fetch:
+
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C-D <-  left/branch
@@ -121,9 +130,9 @@ Sync repo:  A-B-C-D <-  left/branch
 Right repo: A-B-C <-branch
 ```
 
-Merge: 
+Merge:
 
-```
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C-D <-  sync-branch, left/branch
@@ -133,7 +142,8 @@ Right repo: A-B-C <-branch
 ```
 
 Push and remove sync branch:
-```
+
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C-D <-  left/branch, right/branch
@@ -145,7 +155,7 @@ Right repo: A-B-C-D <-branch
 
 Initial:
 
-```
+```plaintext
 Left repo:  A-B-C <- branch
 
 Sync repo:  A-B-C <-  left/branch, right/branch
@@ -153,7 +163,8 @@ Sync repo:  A-B-C <-  left/branch, right/branch
 Right repo: A-B-C-D <-branch
 ```
 
-Fetch: 
+Fetch: plaintext
+
 ```
 Left repo:  A-B-C <- branch
 
@@ -163,9 +174,9 @@ Sync repo:  A-B-C-D <-  sync-branch, right/branch
 Right repo: A-B-C-D <-branch
 ```
 
-Merge: 
+Merge:
 
-```
+```plaintext
 Left repo:  A-B-C <- branch
 
 Sync repo:  A-B-C-D <- sync-branch, right/branch
@@ -175,7 +186,8 @@ Right repo: A-B-C-D <-branch
 ```
 
 Push and remove sync branch:
-```
+
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C-D <- left/branch, right/branch
@@ -187,7 +199,7 @@ Right repo: A-B-C-D <-branch
 
 Initial:
 
-```
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C <- left/branch, right/branch
@@ -195,8 +207,9 @@ Sync repo:  A-B-C <- left/branch, right/branch
 Right repo: A-B-C-E <-branch
 ```
 
-Fetch: 
-```
+Fetch:
+
+```plaintext
 Left repo:  A-B-C-D <- branch
 
 Sync repo:  A-B-C-E <- sync-branch, right/branch
@@ -205,9 +218,9 @@ Sync repo:  A-B-C-E <- sync-branch, right/branch
 Right repo: A-B-C-E <-branch
 ```
 
-Merge: 
+Merge:
 
-```
+```plaintext
 Left repo:  A-B-C-D <- branch
 
                    ,- right/branch
@@ -218,7 +231,8 @@ Right repo: A-B-C-E <-branch
 ```
 
 Push and remove sync branch:
-```
+
+```plaintext
 Left repo:  A-B-C-E-F <- branch
 				'-D-' 
 
@@ -236,21 +250,20 @@ The MIT License (MIT)
 
 Copyright (c) 2015 Aleksey Didik
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the "Software"),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.

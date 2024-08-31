@@ -1,70 +1,74 @@
 #!/bin/bash
 
 if [ "$#" -ne 3 ]; then
-    >&2 echo "Usage: git-repos-sync <repository URL> <repository URL> <branch-to-sync>"
-    exit 1
+  >&2 echo "Usage: git-repos-sync <repository URL> <repository URL> <branch-to-sync>"
+  exit 1
 fi
 
+left="$1"
+right="$2"
+branch="$3"
+
 if [ ! -d ".git" ]; then
-	echo "Git repo for syncronization is not found, creating one..."
-	git init
-	git fetch $1
-	git checkout -b master FETCH_HEAD	
-	echo
+  echo "Git repo for synchronization is not found, creating one..."
+  git init
+  git fetch "${left}"
+  git checkout -b master FETCH_HEAD
+  echo
 fi
 
 if ! git diff-index --quiet HEAD --; then
-    >&2 echo "Local modifications found, looks like your in the conflict resolution. Resolve a conflict and commit. Then rerun script."
+  >&2 echo "Local modifications found, looks like your in the conflict resolution. Resolve a conflict and commit. Then rerun script."
+  exit 1
+fi
+
+echo "Left: ${left}"
+echo "Right: ${right}"
+echo
+echo "Fetch latest commits from branch '${branch}' in '${left}'"
+if ! git fetch -u "${left}" "${branch}:left/${branch}"; then
+  >&2 echo "Fatal: unable to fetch from '${left}', rerun the script as soon as connection restored."
+  exit 1
+fi
+echo "Fetch latest commits from branch ${branch} in ${right}"
+if ! git fetch -u "${right}" "${branch}:right/${branch}"; then
+  >&2 echo "Fatal: unable to fetch from '${right}', rerun the script as soon as connection restored."
+  exit 1
+fi
+if git checkout --quiet -b "sync-${branch}" "right/${branch}"; then
+  echo "Merge branches from left and right if necessary."
+  if ! git merge -m "Merge to sync between '${left}' and '${right}'" --log "left/${branch}"; then
+    >&2 echo "Merge conflict. Manual resolution needed, commit and rerun script."
     exit 1
-fi
-
-echo "Left: $1"
-echo "Right: $2"
-echo 
-echo "Fetch latest commits from branch $3 in $1"
-if ! git fetch -u $1 $3:left/$3; then 
-	>&2 echo "Fatal: unable to fetch from $1, rerun the script as soon as connnection restored."
-	exit 1
-fi 	
-echo "Fetch latest commits from branch $3 in $2"
-if ! git fetch -u $2 $3:right/$3; then
-	>&2 echo "Fatal: unable to fetch from $2, rerun the script as soon as connnection restored."
-	exit 1
-fi
-if git checkout --quiet -b sync-$3 right/$3; then
-	echo "Merge branches from left and right if necessary."
-	if ! git merge -m "Merge to sync between $1 and $2" --log left/$3; then
-                >&2 echo "Merge conflict. Solve is manually, commit and rerun script."
-                exit 1
-    fi
+  fi
 else
-	echo "Rerun after merge conflict resolution or restored connection."
-	git checkout --quiet sync-$3
-	echo "Try to merge with right first"
-	if ! git merge -m "Merge to sync between $1 and $2" --log right/$3; then
-                >&2 echo "Merge conflict. Solve is manually, commit and rerun script."
-                exit 1
-    fi
-	if ! git merge -m "Merge to sync between $1 and $2" --log left/$3; then
-                >&2 echo "Merge conflict. Solve is manually, commit and rerun script."
-                exit 1
-    fi
+  echo "Rerun after merge conflict resolution or restored connection."
+  git checkout --quiet "sync-${branch}"
+  echo "Try to merge with right first"
+  if ! git merge -m "Merge to sync between '${left}' and '${right}'" --log "right/${branch}"; then
+    >&2 echo "Merge conflict. Manual resolution needed, commit and rerun script."
+    exit 1
+  fi
+  if ! git merge -m "Merge to sync between '${left}' and '${right}'" --log "left/${branch}"; then
+    >&2 echo "Merge conflict. Manual resolution needed, commit and rerun script."
+    exit 1
+  fi
 fi
 
-echo "Push merged changes in $3 to $2"
-if ! git push $2 HEAD:$3; then
-	>&2 echo "Fatal: unable to push to $2, rerun the script as soon as connection restored."
-	exit 1
+echo "Push merged changes in '${branch}' to '${right}'"
+if ! git push "${right}" "HEAD:${branch}"; then
+  >&2 echo "Fatal: unable to push to '${right}', rerun the script as soon as connection restored."
+  exit 1
 
-fi	
-echo "Push merged changes in $3 to $1"
-if ! git push $1 HEAD:$3; then
-	>&2 echo "Fatal: unable to push to $1, rerun the script as soon as connection restored."
-	exit 1
+fi
+echo "Push merged changes in '${branch}' to '${left}'"
+if ! git push "${left}" "HEAD:${branch}"; then
+  >&2 echo "Fatal: unable to push to '${left}', rerun the script as soon as connection restored."
+  exit 1
 
-fi	
+fi
 
 git checkout --quiet master
-git branch -D --quiet sync-$3
+git branch -D --quiet "sync-${branch}"
 
 echo "Done."
