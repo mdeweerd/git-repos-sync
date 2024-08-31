@@ -9,11 +9,23 @@ left="$1"
 right="$2"
 branch="$3"
 
+export POTENTIAL_MAIN_REGEX="${POTENTIAL_MAIN_REGEX:(?:main|master|develop(men[t])?|dev)}"
+
+git_default_main() {
+  # Determine the main/master branch according to the POTENTIAL_MAIN_REGEX
+  local default
+  default=$(git branch --format "%(refname:lstrip=2)" | \grep -ohP "^(?:.*/?)${POTENTIAL_MAIN_REGEX}$" | sort -u | tail -1)
+  if [ "$default" = "" ] ; then
+    default=$(git branch -r --format "%(refname:lstrip=2)" | \grep -ohP "^origin/${POTENTIAL_MAIN_REGEX}$" | sort -u | tail -1)
+  fi
+  echo -n "$default"
+}
+
 if [ ! -d ".git" ]; then
   echo "Git repo for synchronization is not found, creating one..."
   git init
   git fetch "${left}"
-  git checkout -b master FETCH_HEAD
+  git checkout --quiet -b "$(git_default_main)" FETCH_HEAD
   echo
 fi
 
@@ -66,7 +78,7 @@ if ! git push "${left}" "HEAD:${branch}" --tags; then
   exit 1
 fi
 
-git checkout --quiet master
+git checkout --quiet "$(git_default_main)"
 git branch -D --quiet "sync-${branch}"
 
 echo "Done."
